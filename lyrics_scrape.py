@@ -10,10 +10,28 @@ import pandas as pd
 CLIENT_ACCESS_TOKEN = os.getenv('GENIUS_CLIENT_ACCESS_TOKEN')
 
 ##### ALBUMS
+r = requests.get("https://en.wikipedia.org/wiki/Bad_Bunny_discography")
+soup = BeautifulSoup(r.text, 'html.parser')
+album_list = []
 
-album_list = ['X_100pre', 'OASIS', 'YHLQMDLG',
-              'LAS QUE NO IBAN A SALIR', 'EL ÚLTIMO TOUR DEL MUNDO']
+# Studio Albums
+studio_album_list_table = soup.find_all('table', {'class':'wikitable plainrowheaders'})[0]
+studio_album_name_table = studio_album_list_table.find_all('th', {'scope':'row'})
+for album_row in studio_album_name_table:
+    normalized_str = unicodedata.normalize('NFC', album_row.text.strip())
+    album_title = re.split(r"\(",normalized_str)[0]
+    album_list.append(album_title)
+    
+# Compilation Albums
+comp_album_list_table = soup.find_all('table', {'class':'wikitable plainrowheaders'})[1]
+comp_album_name_table = comp_album_list_table.find_all('th', {'scope':'row'})
+for album_row in comp_album_name_table:
+    normalized_str = unicodedata.normalize('NFC', album_row.text.strip())
+    album_title = re.split(r"\(",normalized_str)[0]
+    album_list.append(album_title)
 
+
+# DF Schema
 lyrics_dict = {'artists': [],
                'album' : [],
                'title': [],
@@ -22,8 +40,11 @@ lyrics_dict = {'artists': [],
                'url': []
               }
 
+# Genius API Settings
 genius = Genius(CLIENT_ACCESS_TOKEN,
-				remove_section_headers = False)
+				remove_section_headers = False,
+				timeout = 20,
+				retries = 1)
 
 # Retrieving songs for artist's albums
 for album_name in album_list:
@@ -60,3 +81,8 @@ for song_row in songs_table:
 		lyrics_dict['lyrics'].append(single_song.lyrics)
 		lyrics_dict['url'].append(single_song.url)
 
+
+pd.DataFrame(lyrics_dict).to_csv('bad_bunny_lyrics.csv',
+								index = False,
+								encoding = 'utf-8-sig' # Encoding para que el archivo conserve acentos y otros simbolos (realmente es solo para Excel porque con pandas lo lee bien)
+								)
