@@ -68,12 +68,12 @@ pattern_singles = re.compile(r'\"([\w\s\?\¿\(\)]*)\"')
 
 for song_row in songs_table:
 	normalized_str = unicodedata.normalize('NFC', song_row.text.strip())
-	single_name = pattern_singles.match(normalized_str).groups()[0]
+	single_name = pattern_singles.match(normalized_str).groups()[0] # AttributeError: 'NoneType' object has no attribute 'groups
 
 	single_song = genius.search_song(single_name, 'Bad Bunny')
 	
 	single_title = single_song.title
-	if single_title not in lyrics_dict['title']:
+	if (single_title not in lyrics_dict['title']) and (re.search(r"bad bunny",single_song.artist.lower())):
 		lyrics_dict['artists'].append(single_song.artist)
 		lyrics_dict['album'].append('Single')
 		lyrics_dict['title'].append(single_title)
