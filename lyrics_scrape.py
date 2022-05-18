@@ -60,11 +60,9 @@ for album_name in album_list:
 
 
 ##### SINGLES OR OTHERS
-r = requests.get("https://en.wikipedia.org/wiki/Bad_Bunny_discography")
-soup = BeautifulSoup(r.text, 'html.parser')
-singles_table = soup.find_all('table', {'class':'wikitable plainrowheaders'})[3]
+singles_table = soup.find_all('table', {'class':'wikitable plainrowheaders'})[5]
 songs_table = singles_table.find_all('th', {'scope':'row'})
-pattern_singles = re.compile(r'\"([\w\s\?\¿\(\)]*)\"')
+pattern_singles = re.compile(r'\"([\w\s\?\¿\(\):/]*)\"')
 
 for song_row in songs_table:
 	normalized_str = unicodedata.normalize('NFC', song_row.text.strip())
